@@ -2,7 +2,7 @@
 //    created:    2018-07-26 9:05 PM
 //    file:       httpdownloadexceptions.cpp
 //    author:     Mark Buckaway
-//    purpose:
+//    purpose:    Our own exceptions
 //
 //*********************************************************************
 

@@ -27,3 +27,9 @@ in poco/bin. No attempt be been make to fix the library rpath on MacOSX.
 Enjoy.
 
 
+Assumptions
+
+Most of the assumptions are documented in the code. However, there are lots of opportunities for improvement, including
+multi-theaded support, better use of temporary files (100 chunks means 100 temp files), etc.. However, it is beyond the scope
+of the application.
+

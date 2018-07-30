@@ -38,8 +38,14 @@ namespace HTTPDownload
         std::string _outputFilename;
         std::string _url;
         bool _fullFile;
+        int _numberChunks;
+        long _chunkSize;
         void displayHelp();
         void handleHelp(const std::string& name, const std::string& value);
+
+        // 1 MiB, not 1MB, in bytes
+        static long const ONEMiB = 1024*1024;
+
     };
 }
 #endif //HTTPDOWNLOAD_HTTPAPPLICATON_H

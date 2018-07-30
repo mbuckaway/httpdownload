@@ -2,10 +2,11 @@
 //    created:    2018-07-25 9:16 PM
 //    file:       httpapplicaton.cpp
 //    author:     Mark Buckaway
-//    purpose:
+//    purpose:    Main application code for downloader
 //
 //*********************************************************************
 
+#include <Poco/NumberParser.h>
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Logger.h"
 #include "Poco/URI.h"
@@ -20,7 +21,12 @@
 
 namespace HTTPDownload
 {
-    HTTPApplication::HTTPApplication() : _displayHelp(false), _verbose(false), _fullFile(false)
+    HTTPApplication::HTTPApplication() :
+                _displayHelp(false) // Default is no help
+                , _verbose(false)   // default is not to use verbose mode (be quiet)
+                , _fullFile(false)  // default is to download chunks
+                , _numberChunks(4)  /// default is four chunks
+                , _chunkSize(ONEMiB)
     {
         Application::setUnixOptions(true);
     }
@@ -78,6 +84,18 @@ namespace HTTPDownload
                         .required(false)
                         .repeatable(false));
 
+        options.addOption(
+                Poco::Util::Option("chunks", "c", "Number of chunks to use (default is 4)")
+                        .required(false)
+                        .repeatable(false)
+                        .argument("chunks"));
+
+        options.addOption(
+                Poco::Util::Option("size", "s", "Chunk size in bytes (default is 1MIB or 1048576)")
+                        .required(false)
+                        .repeatable(false)
+                        .argument("size"));
+
     }
 
     void HTTPApplication::handleOption(const std::string &name, const std::string &value)
@@ -100,6 +118,34 @@ namespace HTTPDownload
         {
             _fullFile = true;
         }
+        else if (name == "chunks")
+        {
+            // Get the number of chunks and ignore user error
+            try
+            {
+                _numberChunks = Poco::NumberParser::parse(value);
+                // Save std::cout for verbose info
+                std::cerr << "Number of chunks specified as " << _numberChunks << std::endl;
+
+            }
+            catch (Poco::Exception& e)
+            {
+                std::cerr << "Invalid number of chunks ignored." << std::endl;
+            }
+        }
+        else if (name == "size")
+        {
+            // Get size of the chunks. Must be 1 or larger
+            try
+            {
+                _chunkSize = Poco::NumberParser::parse64(value);
+                std::cerr << "Chunk size specified as " << _chunkSize << std::endl;
+            }
+            catch (Poco::Exception& e)
+            {
+                std::cerr << "Invalid number of chunks ignored." << std::endl;
+            }
+        }
     }
 
     void HTTPApplication::displayHelp()
@@ -108,8 +154,7 @@ namespace HTTPDownload
         helpFormatter.setUnixStyle(true);
         helpFormatter.setCommand(commandName());
         helpFormatter.setUsage("OPTIONS");
-        helpFormatter.setHeader(
-                "HTTP Download Utility");
+        helpFormatter.setHeader("HTTP MultiGET Download Utility");
         helpFormatter.format(std::cout);
 
     }
@@ -145,26 +190,33 @@ namespace HTTPDownload
                 }
 
                 // Setup out download
-                HTTPDownload::HTTPDownloader downloader(uri, _verbose);
+                HTTPDownload::HTTPDownloader downloader(uri, _outputFilename, _verbose, _chunkSize);
+
+                // Verify our download can succeed. Check file existance, server support, and
+                // if the command line options are valid
+                downloader.CheckRemoteFile(_numberChunks);
 
                 // If we have the file file, we download everything, otherwise chunk it
                 if (_fullFile)
                 {
-                    downloader.Download(0, _outputFilename);
+                    downloader.Download();
                 }
                 else
                 {
-                    // Download the chunks - order doesn't really matter
+                    // Download the chunks first, in case there are errors
                     // An improvement would be to store the temp files on /tmp or simular, but we use the
-                    // current directory for now
-                    downloader.Download(1, _outputFilename);
-                    downloader.Download(2, _outputFilename);
-                    downloader.Download(3, _outputFilename);
-                    downloader.Download(4, _outputFilename);
+                    // directory of the output file for now. We could also setup a POCO ThreadPool
+                    // to download these in parallel.
 
-                    // Rebuild the file
+                    // We start at 1 because 0 means download the full file
+                    for (int count = 1; count <= _numberChunks; count++)
+                    {
+                        downloader.Download(count);
+                    }
+
+                    // Rebuild the file after a successfull download
                     Poco::FileOutputStream outfile(_outputFilename);
-                    for (int fileno = 1; fileno <= 4; fileno++)
+                    for (int fileno = 1; fileno <= _numberChunks; fileno++)
                     {
                         std::string infilename = Poco::format("%s-%d", _outputFilename, fileno);
                         Poco::FileInputStream infile(infilename);
@@ -174,6 +226,9 @@ namespace HTTPDownload
                         tmpfile.remove();
                     }
                     outfile.close();
+                    // We could use POCO logging to log to the console instead of verbose checks and
+                    // SendMessage in HTTPDownloader as an improvement. However, sending text
+                    // to the console is good enough for now
                     if (_verbose)
                     {
                         std::cout << "Chunk file downloaded and stored in " << _outputFilename << std::endl;
@@ -182,6 +237,8 @@ namespace HTTPDownload
             }
             catch (Poco::Exception &e)
             {
+                // On error, we do not clean up chunk files for now, but an improvement would be to
+                // remove any temporary files
                 std::cerr << "Downloader returned an error: " << e.displayText() << std::endl;
                 result = Application::EXIT_IOERR;
             }
