@@ -22,7 +22,7 @@ in poco/bin. No attempt be been make to fix the library rpath on MacOSX.
 3) Run the build.sh:
      bash build.sh
 
-4) Run the app: ./httpdownload -h
+4) Run the app: cmake-build/httpdownload -h
 
 Enjoy.
 
