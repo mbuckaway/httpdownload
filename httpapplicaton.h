@@ -28,8 +28,14 @@ namespace HTTPDownload
         void initialize(Application& self) override;
         /// \brief Standard POCO teardown application method
         void uninitialize() override;
+
+        /// \brief Defines the options used by our app
         void defineOptions(Poco::Util::OptionSet& options) override;
+
+        /// \brief Handles parsing of the command line
         void handleOption(const std::string &name, const std::string &value) override;
+
+        /// \brief main entry point for our application (provided by POCO)
         int main(const std::vector<std::string>& args) override;
 
     private:
@@ -40,7 +46,11 @@ namespace HTTPDownload
         bool _fullFile;
         int _numberChunks;
         long _chunkSize;
+
+        /// \brief Display help to the user
         void displayHelp();
+
+        /// \brief Special routine to process the help (stops command line option processing)
         void handleHelp(const std::string& name, const std::string& value);
 
         // 1 MiB, not 1MB, in bytes
