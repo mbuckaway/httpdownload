@@ -31,5 +31,5 @@ Assumptions
 
 Most of the assumptions are documented in the code. However, there are lots of opportunities for improvement, including
 multi-theaded support, better use of temporary files (100 chunks means 100 temp files), etc.. However, it is beyond the scope
-of the application.
+of the application. For the most part, this program is to test use of HTTP and downloading files in chunks.
 
