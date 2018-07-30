@@ -7,8 +7,8 @@ responsible for downloading a chunk of code and then assembling them at the end 
 The code uses the POCO library for the http protocol implementation. The only reason POCO is being used is because it is what I'm familar with
 and it runs on Linux, Windows, and MacOSX without modification.
 
-To build the code a version 3.0 or better of cmake must be installed. Also required is a reasonably new compiler. This application has been tested
-on MACOSX and should support Linux. While Windows might work, it has not been a consideration and your mileage may vary.
+To build the code, version 3.0 or better of cmake must be installed. Also required is a reasonably new compiler that supports C++V11/V14. This application has been tested
+on MACOSX and _should_ support Linux out of the box; however, no attempt has been made to test it. While Windows might work, it has not been a consideration for development, and thus, your mileage may vary.
 
 To build the code, do:
 1) Clone the rep:
