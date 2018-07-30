@@ -33,3 +33,5 @@ Most of the assumptions are documented in the code. However, there are lots of o
 multi-theaded support, better use of temporary files (100 chunks means 100 temp files), etc.. However, it is beyond the scope
 of the application. For the most part, this program is to test use of HTTP and downloading files in chunks.
 
+Development has been done using vi and JetBrain's CLion. The CLion UI files are checked in. To use CLion, after building POCO, point Clion to the main directory, and build.
+
