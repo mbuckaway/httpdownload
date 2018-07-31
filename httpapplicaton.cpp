@@ -37,14 +37,15 @@ namespace HTTPDownload
 
     void HTTPApplication::initialize(Application& self)
     {
-        // Load our default configuration file
-        // loadConfiguration(); // Uncomment to add logging support
-
+#ifdef USE_LOGGING
+        loadConfiguration(); // Add logging support. Required .properties file
+#endif
         // Configure the subsystems including logging
         Application::initialize(self);
 
-        // open the log - uncomment to force the log to open
-        //Poco::Logger::root().information("HTTP Download Application started version %s", std::string(BUILDVERSION));
+#ifdef USE_LOGGING
+        Poco::Logger::root().information("HTTP Download Application started version %s", std::string(BUILDVERSION));
+#endif
     }
 
     void HTTPApplication::uninitialize()
